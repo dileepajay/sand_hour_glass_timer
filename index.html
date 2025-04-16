@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>2D Hourglass Timer - Mobile UI</title>
+
+  <!-- Comfortaa Font -->
+  <link
+    href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;700&display=swap"
+    rel="stylesheet"
+  />
+
+  <!-- Tailwind CSS (CDN) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    /* Optional: Tailwind config if you want custom theme settings */
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            comfortaa: ['Comfortaa', 'cursive']
+          },
+          colors: {
+            primary: '#008aff',
+            danger: '#ff4d4f'
+          },
+          keyframes: {
+            // A small "pop" animation for the timer
+            timeChange: {
+              '0%, 100%': { transform: 'scale(1)' },
+              '50%': { transform: 'scale(1.15)' },
+            },
+          },
+          animation: {
+            timeChange: 'timeChange 0.3s ease-in-out',
+          }
+        }
+      }
+    };
+  </script>
+
+  <!-- Your custom CSS overrides & animations -->
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- GSAP (optional) for flipping animation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.5/gsap.min.js"></script>
+
+  <!-- Main hourglass logic -->
+  <script defer src="app.js"></script>
+</head>
+
+<body class="bg-gray-50 w-screen h-screen flex flex-col font-comfortaa relative">
+  <!-- 
+    Top Bar: Preset Dropdown 
+    (No custom seconds input; just a few quick choices)
+  -->
+  <div class="flex items-center justify-center w-full p-4">
+    <select
+  id="presetSelect"
+  class="px-3 py-2 rounded border border-gray-300 bg-white shadow"
+>
+  <option value="60">1 min</option>
+  <option value="300">5 min</option>
+  <option value="600">10 min</option>
+  <option value="900">15 min</option>
+  <option value="1800">30 min</option>
+  <option value="3600">60 min</option>
+  <option value="custom">Add Custom Time…</option>
+</select>
+
+  </div>
+
+  <!-- Canvas fills remaining space (2D Hourglass drawn here) -->
+  <div class="flex-grow relative">
+    <canvas
+      id="hourglassCanvas"
+      class="absolute top-0 left-0 w-full h-full"
+    >
+      Your browser does not support HTML5 canvas.
+    </canvas>
+  </div>
+
+  <!-- Bottom Bar: Time Display & Controls -->
+  <div class="w-full p-4 flex flex-col items-center gap-4 bg-white shadow-t">
+    <!-- Large Timer Display at the bottom center -->
+    <div
+      id="timerDisplay"
+      class="text-4xl font-bold text-gray-900"
+    >
+      00:00
+    </div>
+
+    <!-- Buttons: Start, Pause, Reset (with inline SVG icons) -->
+    <div class="flex gap-6">
+      <!-- Start Button -->
+      <button
+        id="startBtn"
+        class="flex items-center gap-1 px-4 py-2 rounded bg-primary text-white shadow hover:bg-blue-600 transition-colors"
+      >
+        <!-- Play Icon (inline SVG) -->
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 fill-current" viewBox="0 0 20 20">
+          <path d="M6 4l10 6-10 6V4z" />
+        </svg>
+        <span>Start</span>
+      </button>
+
+      <!-- Pause Button -->
+      <button
+        id="pauseBtn"
+        class="flex items-center gap-1 px-4 py-2 rounded bg-gray-300 text-black shadow hover:bg-gray-400 transition-colors"
+      >
+        <!-- Pause Icon (inline SVG) -->
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 fill-current" viewBox="0 0 20 20">
+          <path d="M6 4h3v12H6V4zm5 0h3v12h-3V4z" />
+        </svg>
+        <span>Pause</span>
+      </button>
+
+      <!-- Reset Button -->
+      <button
+        id="resetBtn"
+        class="flex items-center gap-1 px-4 py-2 rounded bg-danger text-white shadow hover:bg-red-600 transition-colors"
+      >
+        <!-- Refresh/Reset Icon (inline SVG) -->
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 fill-current" viewBox="0 0 20 20">
+          <path d="M10 2a8 8 0 1 1-4.906 14.32l1.157-1.158a6.5 6.5 0 1 0-.147-8.774L6.915 7H2V2.085l1.607 1.606A7.966 7.966 0 0 1 10 2z" />
+        </svg>
+        <span>Reset</span>
+      </button>
+    </div>
+  </div>
+  <!-- Custom Time Modal (hidden by default) -->
+<div
+id="customTimeModal"
+class="fixed inset-0 flex items-center justify-center bg-black/50 hidden"
+>
+<!-- The modal content box -->
+<div class="bg-white dark:bg-neutral-800 p-4 rounded shadow w-80">
+  <h2 class="text-lg font-bold mb-2">Add Custom Time</h2>
+
+  <!-- Hours & Minutes dropdowns -->
+  <div class="flex gap-2 mb-4">
+    <div>
+      <label for="customHours" class="block text-sm">Hours</label>
+      <select
+        id="customHours"
+        class="border border-gray-300 dark:border-gray-600 px-2 py-1 rounded w-full"
+      >
+        <!-- 0 to 24 hours, for example -->
+        <option value="0">0</option>
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <!-- ... up to 24 -->
+      </select>
+    </div>
+    <div>
+      <label for="customMinutes" class="block text-sm">Minutes</label>
+      <select
+        id="customMinutes"
+        class="border border-gray-300 dark:border-gray-600 px-2 py-1 rounded w-full"
+      >
+        <!-- 0 to 59 minutes -->
+        <option value="0">0</option>
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <!-- ... up to 59 -->
+      </select>
+    </div>
+  </div>
+
+  <!-- Action Buttons -->
+  <div class="flex justify-end gap-2">
+    <button
+      id="cancelCustomTimeBtn"
+      class="px-3 py-1 rounded bg-gray-300 hover:bg-gray-400"
+    >
+      Cancel
+    </button>
+    <button
+      id="addCustomTimeBtn"
+      class="px-3 py-1 rounded bg-blue-500 text-white hover:bg-blue-600"
+    >
+      Add
+    </button>
+  </div>
+</div>
+</div>
+</body>
+</html>
