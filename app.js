@@ -274,15 +274,19 @@ function updateSandParticles(deltaTime) {
 
   // If top still has sand, spawn some grains
   if (!isTopEmpty) {
-    spawnSandGrains(3); // spawn a few each frame
+    var count=100-totalDuration/10;
+    if(count<1){
+      count=1;
+    }
+    spawnSandGrains(count); // spawn a few each frame
   }
 
   // Update existing particles
   for (let i = sandParticles.length - 1; i >= 0; i--) {
     const p = sandParticles[i];
-    p.y += p.vy * deltaTime; // move downward
+    p.y += (p.vy * deltaTime)+(Math.random() - 0.5); // move downward
     p.x +=p.xy;
-    p.vy += 20 * deltaTime;  // basic gravity
+    p.vy += (GLASS_HEIGHT/5) * deltaTime;  // basic gravity
     // Once it crosses y>0 (center of glass), remove it
     // (since visually it's "entered" the bottom part)
     if (p.y > -3) {
